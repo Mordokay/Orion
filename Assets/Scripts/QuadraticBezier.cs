@@ -6,125 +6,78 @@ using Unity.Collections;
 using System;
 using Unity.VisualScripting;
 
-namespace ControllerExperiment
+public class QuadraticBezier : MonoBehaviour
 {
-	public class QuadraticBezier : BezierBase
+	[Header("Interpolate every line")]
+	[SerializeField] bool UseInefficientCode;
+
+	[Header("Jobs System")]
+	[SerializeField] bool UseJobs;
+
+	[Header("Debug")]
+	[SerializeField] bool DrawDebugLines;
+
+	[Header("Draw Full Trajectory")]
+	[SerializeField] bool DrawFullTrajectory;
+
+	QuadraticBezierJob job;
+	JobHandle jobHandle;
+
+	Vector3 lastPosition = Vector3.zero;
+
+	public GameObject projectile;
+	[Range(0f, 1f)]
+	[SerializeField] protected float mTime;
+	[Range(0.1f, 10f)]
+	[SerializeField] protected float timeScale;
+	[SerializeField] public List<GameObject> Checkpoints = new();
+
+	protected Vector3 myPosition;
+
+	public void GetBezier(out Vector3 pos, List<GameObject> Checkpoints, float time)
 	{
-		[Header("Interpolate every line")]
-		[SerializeField] bool UseInefficientCode;
-
-		[Header("Jobs System")]
-		[SerializeField] bool UseJobs;
-
-		[Header("Debug")]
-		[SerializeField] bool DrawDebugLines;
-
-		[Header("Draw Full Trajectory")]
-		[SerializeField] bool DrawFullTrajectory;
-
-		QuadraticBezierJob job;
-		JobHandle jobHandle;
-
-		Vector3 lastPosition = Vector3.zero;
-
-		[SerializeField] LineRenderer lineRendered;
-
-		public override void GetBezier(out Vector3 pos, List<GameObject> Checkpoints, float time)
+		if (Checkpoints.Count > 3)
 		{
-			if (Checkpoints.Count > 3)
+			for (int i = 3; i < Checkpoints.Count; i++)
 			{
-				for (int i = 3; i < Checkpoints.Count; i++)
-				{
-					Checkpoints.RemoveAt(i);
-				}
-			}
-
-			QuadraticBezierEquation.GetCurve(out pos,
-				Checkpoints[0].transform.position,
-				Checkpoints[1].transform.position,
-				Checkpoints[2].transform.position,
-				time,
-				UseInefficientCode);
-		}
-
-		private void Update()
-		{
-			UpdateCube();
-			if (DrawFullTrajectory)
-			{
-				UpdateTrajectory();
+				Checkpoints.RemoveAt(i);
 			}
 		}
 
-		void UpdateTrajectory()
+		QuadraticBezierEquation.GetCurve(out pos,
+			Checkpoints[0].transform.position,
+			Checkpoints[1].transform.position,
+			Checkpoints[2].transform.position,
+			time,
+			UseInefficientCode);
+	}
+
+	private void Update()
+	{
+		if (DrawFullTrajectory && Checkpoints.Count == 3)
 		{
-			List<Vector3> allPositions = new List<Vector3>();
+			UpdateTrajectory();
+		}
+	}
 
-			for (int i = 0; i <= 1000; i++)
-			{
-				if (i == 0)
-				{
-					lastPosition = Checkpoints[0].transform.position;
-				}
+	void UpdateTrajectory()
+	{
+		List<Vector3> allPositions = new();
 
-				GetBezier(out myPosition, Checkpoints, i / 1000.0f);
-
-				// Store the current position in the list
-				allPositions.Add(myPosition);
-
-				Debug.DrawLine(lastPosition, myPosition, Color.red);
-				lastPosition = myPosition;
-			}
-
-			lineRendered.SetPositions(allPositions.ToArray());
-			lineRendered.positionCount = allPositions.Count;
+		for (int i = 0; i <= 1000; i++)
+		{
+			GetBezier(out myPosition, Checkpoints, i / 1000.0f);
+			allPositions.Add(myPosition);
 		}
 
-		void UpdateCube()
-		{
-			// jobs approach
-			if (UseJobs)
-			{
-				// you cannot modify values inside struct returned from another component
-				// bezier curve (result position) is calculated inside the struct when job is executed
-				// in order to get the result you need native arrays which is the reference
-				NativeArray<Vector3> result = new NativeArray<Vector3>(1, Allocator.TempJob);
+		gameObject.GetComponent<LineRenderer>().SetPositions(allPositions.ToArray());
+		gameObject.GetComponent<LineRenderer>().positionCount = allPositions.Count;
+	}
 
-				job = new QuadraticBezierJob()
-				{
-					p0 = Checkpoints[0].transform.position,
-					p1 = Checkpoints[1].transform.position,
-					p2 = Checkpoints[2].transform.position,
-					time = mTime,
-					useInefficientCode = UseInefficientCode,
-					resultArray = result
-				};
-
-				jobHandle = job.Schedule();
-				jobHandle.Complete();
-				Cube.transform.position = result[0];
-
-				// clean up unmanaged memory & prevent memory leak
-				// native containers won't be handled by garbage collector
-				result.Dispose();
-			}
-
-			// traditional approach
-			else
-			{
-				GetBezier(out myPosition, Checkpoints, mTime);
-				Cube.transform.position = myPosition;
-			}
-
-			// draw lines
-			if (DrawDebugLines)
-			{
-				QuadraticBezierEquation.DrawLines(
-					Checkpoints[0].transform.position,
-					Checkpoints[1].transform.position,
-					Checkpoints[2].transform.position,
-					mTime);
-			}
-		}
+	public void RemoveTrajectory()
+	{
+		List<Vector3> allPositions = new();
+		gameObject.GetComponent<LineRenderer>().SetPositions(allPositions.ToArray());
+		gameObject.GetComponent<LineRenderer>().positionCount = allPositions.Count;
 	}
 }
