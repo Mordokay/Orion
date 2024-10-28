@@ -24,23 +24,20 @@ public class PlayerMouseInteraction : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Debug.Log("Mouse button down - Starting cube placement");
-            // Start the cube instantiation process
             StartCubePlacement();
         }
 
         if (isDragging && secondCube != null)
         {
-            // Move the second cube with the mouse while dragging
             MoveSecondCube();
         }
 
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             GameObject projectile = Instantiate(projectilePrefab, Vector3.zero, Quaternion.identity);
-            projectile.GetComponent<ProjectileMovement>().finalPlayerPosition = gameObject.transform.position;
-            projectile.GetComponent<ProjectileMovement>().finalMouseDragPosition = firstCube.transform.position;
-            projectile.GetComponent<ProjectileMovement>().finalMouseDownPosition = secondCube.transform.position;
+            projectile.GetComponent<ProjectileMovement>().finalPlayerPosition = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z);
+            projectile.GetComponent<ProjectileMovement>().finalMouseDragPosition = new Vector3(firstCube.transform.position.x, gameObject.transform.position.y, firstCube.transform.position.z);
+            projectile.GetComponent<ProjectileMovement>().finalMouseDownPosition = new Vector3(secondCube.transform.position.x, gameObject.transform.position.y, secondCube.transform.position.z);
 
             projectiles.Add(projectile);
 

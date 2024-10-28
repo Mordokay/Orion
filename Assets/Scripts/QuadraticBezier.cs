@@ -34,21 +34,13 @@ public class QuadraticBezier : MonoBehaviour
 
 	protected Vector3 myPosition;
 
-	public void GetBezier(out Vector3 pos, List<GameObject> Checkpoints, float time)
+	public void GetBezier(out Vector3 pos, List<GameObject> Checkpoints, float distance)
 	{
-		if (Checkpoints.Count > 3)
-		{
-			for (int i = 3; i < Checkpoints.Count; i++)
-			{
-				Checkpoints.RemoveAt(i);
-			}
-		}
-
-		QuadraticBezierEquation.GetCurve(out pos,
+		QuadraticBezierEquation.GetPointAtDistance(out pos,
 			Checkpoints[0].transform.position,
 			Checkpoints[1].transform.position,
 			Checkpoints[2].transform.position,
-			time,
+			distance,
 			UseInefficientCode);
 	}
 
@@ -64,10 +56,13 @@ public class QuadraticBezier : MonoBehaviour
 	{
 		List<Vector3> allPositions = new();
 
-		for (int i = 0; i <= 1000; i++)
+		for (float i = 0; i <= 20; i += 0.01f)
 		{
-			GetBezier(out myPosition, Checkpoints, i / 1000.0f);
-			allPositions.Add(myPosition);
+			GetBezier(out myPosition, Checkpoints, i);
+			if ((allPositions.Count == 0) || (myPosition != allPositions[allPositions.Count - 1]))
+			{
+				allPositions.Add(myPosition);
+			}
 		}
 
 		gameObject.GetComponent<LineRenderer>().SetPositions(allPositions.ToArray());

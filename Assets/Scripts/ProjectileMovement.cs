@@ -3,6 +3,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class ProjectileMovement : MonoBehaviour
 {
@@ -15,52 +16,36 @@ public class ProjectileMovement : MonoBehaviour
     QuadraticBezierJob job;
     JobHandle jobHandle;
 
-    Vector3 lastPosition = Vector3.zero;
-
     [Range(0f, 1f)]
     [SerializeField] protected float mTime;
 
+    protected Vector3 lastPosition = Vector3.zero;
     protected Vector3 myPosition;
+    protected Vector3 direction;
 
     [Header("Movement Speed")]
     [SerializeField] protected float movementSpeed = 5f; // Speed in units per second
 
     private float totalDistance; // Total distance between the checkpoints
+    private bool useLinearDirection = false;
 
     public Vector3 finalPlayerPosition = Vector3.zero;
     public Vector3 finalMouseDownPosition = Vector3.zero;
     public Vector3 finalMouseDragPosition = Vector3.zero;
 
-    public void GetBezier(out Vector3 pos, float time)
+    public void GetBezier(out Vector3 pos, float distance)
     {
-        QuadraticBezierEquation.GetCurve(out pos,
+        QuadraticBezierEquation.GetPointAtDistance(out pos,
             finalPlayerPosition,
             finalMouseDownPosition,
             finalMouseDragPosition,
-            time,
+            distance,
             UseInefficientCode);
     }
 
     private void Start()
     {
-        totalDistance = 0f; // Reset total distance for new calculations
 
-        for (int i = 0; i <= 1000; i++)
-        {
-            if (i == 0)
-            {
-                lastPosition = finalPlayerPosition;
-            }
-
-            GetBezier(out myPosition, i / 1000.0f);
-
-            // Calculate the distance from the last position to the current position
-            if (i > 0)
-            {
-                totalDistance += Vector3.Distance(lastPosition, myPosition);
-            }
-            lastPosition = myPosition;
-        }
     }
 
     private void Update()
@@ -68,20 +53,19 @@ public class ProjectileMovement : MonoBehaviour
         // Calculate the distance moved based on speed
         float distanceToMove = movementSpeed * Time.deltaTime;
 
-        // Calculate the new mTime based on distance and total distance
-        if (totalDistance > 0)
-        {
-            // Increment mTime proportionally to the distance moved
-            mTime += distanceToMove / totalDistance;
-        }
+        mTime += distanceToMove;
 
-        UpdateProjectile();
+        UpdateProjectile(distanceToMove);
     }
 
-    void UpdateProjectile()
+    void UpdateProjectile(float distanceToMove)
     {
-        // jobs approach
-        if (UseJobs)
+        if (useLinearDirection)
+        {
+            Debug.Log("direction: " + direction + " distanceToMove " + distanceToMove);
+            gameObject.transform.position += direction * distanceToMove * 10;
+        }
+        else if (UseJobs)
         {
             // you cannot modify values inside struct returned from another component
             // bezier curve (result position) is calculated inside the struct when job is executed
@@ -100,31 +84,40 @@ public class ProjectileMovement : MonoBehaviour
 
             jobHandle = job.Schedule();
             jobHandle.Complete();
-            gameObject.transform.position = result[0];
 
+            lastPosition = gameObject.transform.position;
+            gameObject.transform.position = result[0];
+            direction = (result[0] - lastPosition).normalized;
+
+            Debug.Log("Distance: " + Vector3.Distance(gameObject.transform.position, finalMouseDragPosition));
+            if (Vector3.Distance(gameObject.transform.position, finalMouseDragPosition) < 0.1f)
+            {
+                useLinearDirection = true;
+            }
             // clean up unmanaged memory & prevent memory leak
             // native containers won't be handled by garbage collector
             result.Dispose();
         }
-
-        // traditional approach
         else
         {
             GetBezier(out myPosition, mTime);
+            lastPosition = gameObject.transform.position;
             gameObject.transform.position = myPosition;
+            direction = (myPosition - lastPosition).normalized;
+
+            Debug.Log("Distance: " + Vector3.Distance(gameObject.transform.position, finalMouseDragPosition));
+            if (Vector3.Distance(gameObject.transform.position, finalMouseDragPosition) < 0.1f)
+            {
+                useLinearDirection = true;
+            }
         }
     }
 
-    // This method will be called when the projectile collides with another object
     private void OnCollisionEnter(Collision collision)
     {
-        // Check if the collided object is on the "TargetLayer"
         if (collision.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
         {
-            // Handle collision with the target layer
-            Debug.Log("Hit target: " + collision.gameObject.name);
-            // You can add additional logic here, such as destroying the projectile or triggering an effect
-            Destroy(gameObject); // Destroy the projectile upon collision (optional)
+            Destroy(gameObject);
         }
     }
 }
