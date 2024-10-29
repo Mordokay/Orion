@@ -41,8 +41,8 @@ public class PlayerMouseInteraction : MonoBehaviour
 
             projectiles.Add(projectile);
 
-            gameObject.GetComponent<QuadraticBezier>().RemoveTrajectory();
-            gameObject.GetComponent<QuadraticBezier>().Checkpoints = new();
+            //gameObject.GetComponent<QuadraticBezier>().RemoveTrajectory();
+            //gameObject.GetComponent<QuadraticBezier>().Checkpoints = new();
             RemoveObjects();
 
         }
@@ -56,11 +56,11 @@ public class PlayerMouseInteraction : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
         {
             // Instantiate the first cube at the hit point
-            firstCube = Instantiate(cubePrefab, hit.point, Quaternion.identity);
+            firstCube = Instantiate(cubePrefab, new Vector3(hit.point.x, gameObject.transform.position.y, hit.point.z), Quaternion.identity);
             firstCube.GetComponent<Renderer>().material = mouseDownMaterial;
 
             // Instantiate the second cube at the same position
-            secondCube = Instantiate(cubePrefab, hit.point, Quaternion.identity);
+            secondCube = Instantiate(cubePrefab, new Vector3(hit.point.x, gameObject.transform.position.y, hit.point.z), Quaternion.identity);
             secondCube.GetComponent<Renderer>().material = mouseDragMaterial;
 
             // Set dragging to true
@@ -78,7 +78,7 @@ public class PlayerMouseInteraction : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
         {
             // Move the second cube to follow the mouse position on the ground
-            secondCube.transform.position = hit.point;
+            secondCube.transform.position = new Vector3(hit.point.x, gameObject.transform.position.y, hit.point.z);
         }
     }
 

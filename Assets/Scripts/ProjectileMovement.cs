@@ -62,7 +62,6 @@ public class ProjectileMovement : MonoBehaviour
     {
         if (useLinearDirection)
         {
-            Debug.Log("direction: " + direction + " distanceToMove " + distanceToMove);
             gameObject.transform.position += direction * distanceToMove * 10;
         }
         else if (UseJobs)
@@ -89,7 +88,6 @@ public class ProjectileMovement : MonoBehaviour
             gameObject.transform.position = result[0];
             direction = (result[0] - lastPosition).normalized;
 
-            Debug.Log("Distance: " + Vector3.Distance(gameObject.transform.position, finalMouseDragPosition));
             if (Vector3.Distance(gameObject.transform.position, finalMouseDragPosition) < 0.1f)
             {
                 useLinearDirection = true;

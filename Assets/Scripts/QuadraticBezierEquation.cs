@@ -17,7 +17,7 @@ public static class QuadraticBezierEquation
 		float maxDistance = Vector3.Distance(p0, p2); // Max distance for p0 to p2
 
 		// Sample points along the Bézier curve to find the total distance
-		for (float t = 0; t <= 10; t += step)
+		for (float t = 0; t <= 1; t += step)
 		{
 			// Get the current point on the curve
 			GetCurve(out currentPoint, p0, p1, p2, t, useInefficientCode);
@@ -44,6 +44,7 @@ public static class QuadraticBezierEquation
 
 	public static void GetCurve(out Vector3 result, Vector3 p0, Vector3 p1, Vector3 p2, float time, bool UseInefficientCode)
 	{
+		Debug.Log("time: " + time);
 		if (!UseInefficientCode)
 		{
 			Efficient(out result, p0, p1, p2, time);
