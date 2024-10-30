@@ -26,10 +26,7 @@ public class QuadraticBezier : MonoBehaviour
 	Vector3 lastPosition = Vector3.zero;
 
 	public GameObject projectile;
-	[Range(0f, 1f)]
-	[SerializeField] protected float mTime;
-	[Range(0.1f, 10f)]
-	[SerializeField] protected float timeScale;
+
 	[SerializeField] public List<GameObject> Checkpoints = new();
 
 	protected Vector3 myPosition;

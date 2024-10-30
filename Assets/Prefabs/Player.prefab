@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 272cc9369a0f9411d96876d2d2d85000, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 6
+  speed: 10
 --- !u!114 &4410186052176971374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,12 +140,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cubePrefab: {fileID: 9011147738969176899, guid: 96f99074ccf254cf5a1eb6cce7709218, type: 3}
-  projectilePrefab: {fileID: 3204218806358755289, guid: 145888d65ab7b4ba1a5a044f6bba3df1, type: 3}
+  projectilePrefab: {fileID: 8838926416716147534, guid: 145888d65ab7b4ba1a5a044f6bba3df1, type: 3}
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
   mouseDownMaterial: {fileID: 2100000, guid: cb4aa919e590e4b2d99d9cca690a13bd, type: 2}
   mouseDragMaterial: {fileID: 2100000, guid: 42d0f1b26c8ad42aca7cc88f707aac20, type: 2}
+  keepTrajectoryAfterProjectile: 0
 --- !u!114 &4969810111802032475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,9 +163,7 @@ MonoBehaviour:
   UseJobs: 0
   DrawDebugLines: 1
   DrawFullTrajectory: 1
-  projectile: {fileID: 3204218806358755289, guid: 145888d65ab7b4ba1a5a044f6bba3df1, type: 3}
-  mTime: 0.364
-  timeScale: 0.67
+  projectile: {fileID: 8838926416716147534, guid: 145888d65ab7b4ba1a5a044f6bba3df1, type: 3}
   Checkpoints:
   - {fileID: 0}
 --- !u!120 &3977837395925678583

@@ -13,6 +13,7 @@ public class PlayerMouseInteraction : MonoBehaviour
 
     [SerializeField] Material mouseDownMaterial;
     [SerializeField] Material mouseDragMaterial;
+    [SerializeField] bool keepTrajectoryAfterProjectile;
 
     void Start()
     {
@@ -35,16 +36,18 @@ public class PlayerMouseInteraction : MonoBehaviour
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             GameObject projectile = Instantiate(projectilePrefab, Vector3.zero, Quaternion.identity);
-            projectile.GetComponent<ProjectileMovement>().finalPlayerPosition = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z);
-            projectile.GetComponent<ProjectileMovement>().finalMouseDragPosition = new Vector3(firstCube.transform.position.x, gameObject.transform.position.y, firstCube.transform.position.z);
-            projectile.GetComponent<ProjectileMovement>().finalMouseDownPosition = new Vector3(secondCube.transform.position.x, gameObject.transform.position.y, secondCube.transform.position.z);
+            Vector3[] positions = new Vector3[gameObject.GetComponent<LineRenderer>().positionCount];
+            gameObject.GetComponent<LineRenderer>().GetPositions(positions);
+            projectile.GetComponent<ProjectileMovement>().positions = positions;
 
             projectiles.Add(projectile);
 
-            //gameObject.GetComponent<QuadraticBezier>().RemoveTrajectory();
-            //gameObject.GetComponent<QuadraticBezier>().Checkpoints = new();
+            if (!keepTrajectoryAfterProjectile)
+            {
+                gameObject.GetComponent<QuadraticBezier>().RemoveTrajectory();
+                gameObject.GetComponent<QuadraticBezier>().Checkpoints = new();
+            }
             RemoveObjects();
-
         }
     }
 

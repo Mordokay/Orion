@@ -4,110 +4,41 @@ using Unity.Collections;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using System.Linq;
 
 public class ProjectileMovement : MonoBehaviour
 {
-    [Header("Interpolate every line")]
-    [SerializeField] bool UseInefficientCode;
-
-    [Header("Jobs System")]
-    [SerializeField] bool UseJobs;
-
-    QuadraticBezierJob job;
-    JobHandle jobHandle;
-
-    [Range(0f, 1f)]
-    [SerializeField] protected float mTime;
-
-    protected Vector3 lastPosition = Vector3.zero;
-    protected Vector3 myPosition;
-    protected Vector3 direction;
+    public Vector3[] positions;
+    int moveIndex = 0;
 
     [Header("Movement Speed")]
-    [SerializeField] protected float movementSpeed = 5f; // Speed in units per second
-
-    private float totalDistance; // Total distance between the checkpoints
-    private bool useLinearDirection = false;
-
-    public Vector3 finalPlayerPosition = Vector3.zero;
-    public Vector3 finalMouseDownPosition = Vector3.zero;
-    public Vector3 finalMouseDragPosition = Vector3.zero;
-
-    public void GetBezier(out Vector3 pos, float distance)
-    {
-        QuadraticBezierEquation.GetPointAtDistance(out pos,
-            finalPlayerPosition,
-            finalMouseDownPosition,
-            finalMouseDragPosition,
-            distance,
-            UseInefficientCode);
-    }
+    [SerializeField] protected float movementSpeed = 5f;
 
     private void Start()
     {
-
+        transform.position = positions.First();
+        moveIndex = 0;
     }
 
     private void Update()
     {
-        // Calculate the distance moved based on speed
-        float distanceToMove = movementSpeed * Time.deltaTime;
+        Vector3 currentPos = positions[moveIndex];
+        transform.position = Vector3.MoveTowards(transform.position, currentPos, movementSpeed * Time.deltaTime);
 
-        mTime += distanceToMove;
+        //Rotate
+        Vector3 dir = currentPos - (Vector3)transform.position;
+        float angle = Mathf.Atan2(dir.normalized.x, dir.normalized.z);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0f, angle * Mathf.Rad2Deg + 90f, 0f), movementSpeed);
 
-        UpdateProjectile(distanceToMove);
-    }
-
-    void UpdateProjectile(float distanceToMove)
-    {
-        if (useLinearDirection)
+        float distance = Vector3.Distance(currentPos, transform.position);
+        if (distance <= 0.05f)
         {
-            gameObject.transform.position += direction * distanceToMove * 10;
+            moveIndex++;
         }
-        else if (UseJobs)
+
+        if (moveIndex > positions.Length - 1)
         {
-            // you cannot modify values inside struct returned from another component
-            // bezier curve (result position) is calculated inside the struct when job is executed
-            // in order to get the result you need native arrays which is the reference
-            NativeArray<Vector3> result = new NativeArray<Vector3>(1, Allocator.TempJob);
-
-            job = new QuadraticBezierJob()
-            {
-                p0 = finalPlayerPosition,
-                p1 = finalMouseDownPosition,
-                p2 = finalMouseDragPosition,
-                time = mTime,
-                useInefficientCode = UseInefficientCode,
-                resultArray = result
-            };
-
-            jobHandle = job.Schedule();
-            jobHandle.Complete();
-
-            lastPosition = gameObject.transform.position;
-            gameObject.transform.position = result[0];
-            direction = (result[0] - lastPosition).normalized;
-
-            if (Vector3.Distance(gameObject.transform.position, finalMouseDragPosition) < 0.1f)
-            {
-                useLinearDirection = true;
-            }
-            // clean up unmanaged memory & prevent memory leak
-            // native containers won't be handled by garbage collector
-            result.Dispose();
-        }
-        else
-        {
-            GetBezier(out myPosition, mTime);
-            lastPosition = gameObject.transform.position;
-            gameObject.transform.position = myPosition;
-            direction = (myPosition - lastPosition).normalized;
-
-            Debug.Log("Distance: " + Vector3.Distance(gameObject.transform.position, finalMouseDragPosition));
-            if (Vector3.Distance(gameObject.transform.position, finalMouseDragPosition) < 0.1f)
-            {
-                useLinearDirection = true;
-            }
+            Destroy(gameObject);
         }
     }
 
