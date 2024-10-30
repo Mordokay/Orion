@@ -10,6 +10,7 @@ public class PlayerMouseInteraction : MonoBehaviour
     private GameObject secondCube;    // Second cube that follows the mouse
     private List<GameObject> projectiles = new();    // projectiles
     private bool isDragging = false;
+    public GameObject rotatingObject;   // The object that rotates around the player
 
     [SerializeField] Material mouseDownMaterial;
     [SerializeField] Material mouseDragMaterial;
@@ -23,6 +24,8 @@ public class PlayerMouseInteraction : MonoBehaviour
 
     void Update()
     {
+        RotateAroundPlayer();
+
         if (Input.GetMouseButtonDown(0))
         {
             StartCubePlacement();
@@ -94,5 +97,26 @@ public class PlayerMouseInteraction : MonoBehaviour
             Destroy(secondCube);
 
         isDragging = false;
+    }
+
+    void RotateAroundPlayer()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+        {
+            // Calculate direction from the player to the mouse hit point
+            Vector3 direction = hit.point - transform.position;
+            direction.y = 0; // Keep rotation on the XZ plane
+
+            // Calculate the rotation angle from the forward direction
+            float angle = Mathf.Atan2(direction.z, direction.x) * Mathf.Rad2Deg;
+
+            // Rotate the object around the player
+            Vector3 position = transform.position + Quaternion.Euler(0, -angle, 0) * Vector3.right * 0.8f;
+
+            rotatingObject.transform.position = new Vector3(position.x, transform.position.y - 0.6f, position.z);
+            rotatingObject.transform.rotation = Quaternion.LookRotation(-direction) * Quaternion.Euler(0, 180, 0);
+        }
     }
 }

@@ -92,9 +92,6 @@ public class QuadraticBezier : MonoBehaviour
 		gameObject.GetComponent<LineRenderer>().positionCount = allPositions.Count;
 
 		CleanTrajectory();
-
-		//https://www.youtube.com/watch?v=L7VXcZXlhww
-		//https://gamedev.stackexchange.com/questions/131108/moving-object-beyond-bezier-curve
 	}
 
 	void CleanTrajectory()
