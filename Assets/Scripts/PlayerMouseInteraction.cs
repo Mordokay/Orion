@@ -36,8 +36,7 @@ public class PlayerMouseInteraction : MonoBehaviour
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             GameObject projectile = Instantiate(projectilePrefab, Vector3.zero, Quaternion.identity);
-            Vector3[] positions = new Vector3[gameObject.GetComponent<LineRenderer>().positionCount];
-            gameObject.GetComponent<LineRenderer>().GetPositions(positions);
+            Vector3[] positions = gameObject.GetComponent<QuadraticBezier>().allPositions.ToArray();
             projectile.GetComponent<ProjectileMovement>().positions = positions;
 
             projectiles.Add(projectile);

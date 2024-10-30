@@ -44,7 +44,6 @@ public static class QuadraticBezierEquation
 
 	public static void GetCurve(out Vector3 result, Vector3 p0, Vector3 p1, Vector3 p2, float time, bool UseInefficientCode)
 	{
-		Debug.Log("time: " + time);
 		if (!UseInefficientCode)
 		{
 			Efficient(out result, p0, p1, p2, time);
@@ -57,7 +56,6 @@ public static class QuadraticBezierEquation
 
 	static void Inefficient(out Vector3 result, Vector3 p0, Vector3 p1, Vector3 p2, float time)
 	{
-		//Debug.Log("inefficient equation..");
 		a = Vector3.Lerp(p0, p1, time);
 		b = Vector3.Lerp(p1, p2, time);
 		c = Vector3.Lerp(a, b, time);
@@ -66,7 +64,6 @@ public static class QuadraticBezierEquation
 
 	public static void Efficient(out Vector3 result, Vector3 p0, Vector3 p1, Vector3 p2, float time)
 	{
-		//Debug.Log("efficient equation..");
 		float tt = time * time;
 
 		float u = 1f - time;
